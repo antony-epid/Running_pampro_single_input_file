@@ -19,6 +19,9 @@ import pandas as pd
 import numpy as np
 import traceback
 import re
+from  multiprocessing import Pool, cpu_count
+import argparse
+from functools import partial
 
 #######################################################################################################################
 
@@ -408,12 +411,26 @@ def file_task(analysis_function, settings, filename, **kwargs):
 
 if __name__ == "__main__":
 
-    settings_file = str(sys.argv[1])
-    filename = str(sys.argv[2])
-    # parse config file
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--filenames', dest='filenames', nargs="*", type=str,required=True)
+    parser.add_argument('--settings_file', dest='settings_file', type = str, required=True)
+    
+    args = parser.parse_args() 
+    settings_file = str(args.settings_file)
     settings = pd.read_csv(settings_file, dtype=str)
-    
-    file_task(standardanalysis, settings, filename)
-    
 
+    filenames = args.filenames
+    num_files = len(filenames)
+    num_cores = cpu_count()
+
+    assert num_files > 0, "the file list is empty !"
+    assert num_cores >= num_files, "the number of files should be lower than the number of cores !"
+   
+    if num_files == 1:
+        filename = str(filenames[0])
+        file_task(standardanalysis, settings, filename)
+    elif num_cores > num_files:
+      filenames = [str(f) for f in filenames]
+      with Pool(processes=num_files) as pool:
+        pool.map(partial(file_task, standardanalysis, settings), filenames)
 
