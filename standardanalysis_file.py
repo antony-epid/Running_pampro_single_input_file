@@ -26,7 +26,7 @@ from functools import partial
 #######################################################################################################################
 
 #def standardanalysis(job_details, settings):
-def standardanalysis(setting, filename=None, job_details=None):
+def standardanalysis(settings, filename=None, job_details=None):
     # number of iterations to be used when optimising during calibration
     num_iterations = 500
     
